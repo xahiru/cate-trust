@@ -14,7 +14,7 @@ def flat(listx):
             yield from flat(item)
 def convert(listx):
     #l istx : ['Adventure', 'Animation', 'Children', 'Comedy', 'Fantasy']
-    if
+
     pass
 
 file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
