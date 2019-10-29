@@ -176,8 +176,8 @@ for trainset, testset in kf.split(data1):
 print("\nMEAN_RMSE:" + str(t_rmse/k))
 print("MEAN_MAE:" + str(t_mae/k))
 
-# print(predictions)
+print(predictions)
 
-# df = pd.DataFrame(predictions, columns=['u_id', 'i_id', 'rating', 'estimate','detail'])
+df = pd.DataFrame(predictions, columns=['u_id', 'i_id', 'rating', 'estimate','detail'])
 
-# print(df)
+print(df)
