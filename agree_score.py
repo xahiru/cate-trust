@@ -41,10 +41,31 @@ def into_rate(cate,rate):
             cate[index] = rate
     return cate
 
+def dist(vec1,vec2,common_number):
+    vec1 = np.array(vec1)
+    vec2 = np.array(vec2)
+    dist = np.sqrt(np.sum(np.square(vec1 - vec2))/common_number)
+    return dist
+
+def common_number(vec1,vec2):
+    vec1 = np.array(vec1)
+    vec2 = np.array(vec2)
+    i = 0
+    common_set_length = 0
+    while (i < len(vec1)):
+        a_val = vec1[i]
+        b_val = vec2[i]
+
+        if a_val != 0 and b_val != 0:
+            common_set_length += 1
+        i += 1
+
+    return common_set_length
+
 
 class KNNWithMeans(SymmetricAlgo):
 
-    def __init__(self,list_of_cats,taste_score_data, base_line=False, k=20, min_k=1, sim_options={}, verbose=True, **kwargs):
+    def __init__(self,list_of_cats,taste_score_data,option_sim,base_line=False, k=20, min_k=1, sim_options={}, verbose=True, **kwargs):
 
         SymmetricAlgo.__init__(self, sim_options=sim_options,
                                verbose=verbose, **kwargs)
@@ -54,11 +75,18 @@ class KNNWithMeans(SymmetricAlgo):
         self.list_of_cats = list_of_cats
         self.taste_score_data = taste_score_data
         self.base_line = base_line
+        self.option_sim = option_sim
+
+
 
     def fit(self, trainset):
 
         SymmetricAlgo.fit(self, trainset)
+
         self.sim = self.compute_similarities(verbose=self.verbose)
+
+        self.sim = self.option_sim
+
 
         self.means = np.zeros(self.n_x)
         for x, ratings in iteritems(self.xr):
@@ -125,9 +153,9 @@ t_rmse = 0
 
 for trainset, testset in kf.split(data1):
     taste_score_data = {}
-    cat_score_data = {}
     items_taste_score_data = {}
-#calc each user's taste (by this user's history item list)
+    sim_taste = []
+#compute each user's taste (by this user's history item list)
     for user, item_list in trainset.ur.items():
         user_rating = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -145,7 +173,7 @@ for trainset, testset in kf.split(data1):
         user_rating = (user_rating / np.sum(user_rating)).tolist()
         taste_score_data[user] = user_rating
 
-#calc each item's cate (by its used user' rating and user's taste)
+#compute each item's cate (by its used user' rating and user's taste)
     for item, user_list in trainset.ir.items():
         user_ratings = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         for user, rating in user_list:
@@ -156,13 +184,35 @@ for trainset, testset in kf.split(data1):
         itemx_rating = (user_ratings/np.sum(user_ratings)).tolist()
         items_taste_score_data[item] = itemx_rating
 
+#compute the sim between users
+
+    for i in range(len(taste_score_data)):
+
+        sim_taste_x = []
+        user_x_taste = taste_score_data[i]
+
+        for j in range(len(taste_score_data)):
+
+            user_y_taste = taste_score_data[j]
+
+            #compute the common taste
+            common_taste = common_number(user_x_taste,user_y_taste)
+
+            #compute the dist between two users
+            dist_temp = dist(user_x_taste, user_y_taste,common_taste)
+            sim_taste_x.append(dist_temp)
+
+        sim_taste.append(sim_taste_x)
+    sim_taste_np = np.array(sim_taste)
+
+
 
 #---------------------------------main part---------------------------------#
 
     user_based = True  # changed to False to do item-absed CF
     sim_options = {'name': 'pearson', 'user_based': user_based}
 
-    algo = KNNWithMeans(items_taste_score_data,taste_score_data,base_line=False, sim_options=sim_options)
+    algo = KNNWithMeans(items_taste_score_data,taste_score_data,sim_taste_np,base_line=False, sim_options=sim_options)
 
     algo.fit(trainset)
     predictions = algo.test(testset)
