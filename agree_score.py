@@ -19,6 +19,7 @@ import copy
 from collections import defaultdict
 import os
 import matplotlib
+import matplotlib.pyplot as plt
 import plotly
 
 file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
@@ -226,8 +227,19 @@ for trainset, testset in kf.split(data1):
 print("\nMEAN_RMSE:" + str(t_rmse/k))
 print("MEAN_MAE:" + str(t_mae/k))
 
-# print(predictions)
+#
+# print('start')
+# af = df[df['mean_result'] > 0.005]
+# af = af[af['mean_result'] < 0.2]
+# plot = sns.regplot(x=af.mean_result, y=af.error)
+# fig = plot.get_figure()
+# fig.show()
+# print('end')
 
-# df = pd.DataFrame(predictions, columns=['u_id', 'i_id', 'rating', 'estimate','detail'])
+fig = plt.figure()
+ax = fig.add_subplot(111)
+cax = ax.matshow(algo.option_sim)
+fig.colorbar(cax)
+fig.savefig('result1.png', format='png', dpi=1000)
 
-# print(df)
+
