@@ -16,10 +16,13 @@ from surprise.prediction_algorithms.predictions import PredictionImpossible
 from surprise.prediction_algorithms.algo_base import AlgoBase
 from surprise.prediction_algorithms.knns import SymmetricAlgo
 import copy
+import math
 from collections import defaultdict
 import os
 import matplotlib
 import plotly
+import seaborn as sns
+
 
 file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
 datasetname = 'ml-100k'  # valid datasetnames are 'ml-latest-small', 'ml-20m', and 'jester'
@@ -44,7 +47,7 @@ def into_rate(cate,rate):
 
 class KNNWithMeans(SymmetricAlgo):
 
-    def __init__(self,list_of_cats,taste_score_data, base_line=False, k=20, min_k=1, sim_options={}, verbose=True, **kwargs):
+    def __init__(self,list_of_cats,taste_score_data, base_line=False, k=40, min_k=1, sim_options={}, verbose=True, **kwargs):
 
         SymmetricAlgo.__init__(self, sim_options=sim_options,
                                verbose=verbose, **kwargs)
@@ -80,9 +83,12 @@ class KNNWithMeans(SymmetricAlgo):
         est = self.means[x]
 
         # compute weighted average
+        mean_result = 0
+        total_result = 0
+
+        result_list = []
         sum_sim = sum_ratings = actual_k = 0
         for (nb, sim, r) in k_neighbors:
-            side_info = {}
             # if user_based == False then:
                 # nb = item_inner_id
             if sim > 0:
@@ -100,7 +106,8 @@ class KNNWithMeans(SymmetricAlgo):
                     sum_sim += result
                     sum_ratings += (r - self.means[nb]) * result
                     actual_k += 1
-                    side_info['result'] = result
+                    total_result += result
+                    result_list.append(result)
 
 
         if actual_k < self.min_k:
@@ -108,11 +115,15 @@ class KNNWithMeans(SymmetricAlgo):
 
         try:
             est += sum_ratings / sum_sim
+            mean_result = total_result / actual_k
 
         except ZeroDivisionError:
             pass  # return mean
 
-        details = {'actual_k': actual_k}
+        details = {'actual_k': actual_k,
+                   'mean_result': mean_result,
+                   'result_list': result_list
+                   }
         #add list: error, result, user's taste ,movie's cate
         return est, details
 
@@ -176,8 +187,58 @@ for trainset, testset in kf.split(data1):
 print("\nMEAN_RMSE:" + str(t_rmse/k))
 print("MEAN_MAE:" + str(t_mae/k))
 
-print(predictions)
 
-df = pd.DataFrame(predictions, columns=['u_id', 'i_id', 'rating', 'estimate','detail'])
 
-print(df)
+# make the big matrix include the data :userID, itemID, rating, estimate, error, result, etc.
+# make a plot about the error and result
+df = pd.DataFrame(predictions, columns=['userID', 'itemID', 'rating', 'estimate', 'detail'])
+df['error'] = df.rating - df.estimate
+print(type(df.detail))
+
+print(df.detail[0]['mean_result'])
+df2 = df.detail.apply(pd.Series)
+df = pd.concat([df, df2], axis=1).drop('detail', axis=1)
+
+# plot of error and mean result
+
+af = df[df['error'] != 0]
+plot = sns.regplot(x=af.mean_result, y=af.error)
+fig = plot.get_figure()
+fig.savefig('result.png', format='png', dpi=1000)
+
+fig.show()
+
+
+# print('start')
+# af = df[df['mean_result'] > 0.005]
+# af = af[af['mean_result'] < 0.2]
+# plot = sns.regplot(x=af.mean_result, y=af.error)
+# fig = plot.get_figure()
+# fig.show()
+# print('end')
+
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# cax = ax.matshow(algo.sim)
+
+
+
+
+# plot = sns.regplot(x=df.mean_result, y=df.error, sizes=(15, 200))
+# fig = plot.get_figure()
+# fig.savefig('result.png', format='png', dpi=1000)
+#
+# print('end')
+
+
+# df.to_csv("result.csv")
+
+# plot = sns.regplot(x=df.mean_result, y=df.error, sizes=(15, 200))
+# fig = plot.get_figure()
+# fig.savefig('result.png', format='png', dpi=1000)
+#
+# print('end')
+
+
+# df.to_csv("result.csv")
+
