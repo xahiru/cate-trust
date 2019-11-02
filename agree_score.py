@@ -236,10 +236,12 @@ print("MEAN_MAE:" + str(t_mae/k))
 # fig.show()
 # print('end')
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
-cax = ax.matshow(algo.option_sim)
-fig.colorbar(cax)
-fig.savefig('result1.png', format='png', dpi=1000)
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# cax = ax.matshow(algo.option_sim)
+# fig.colorbar(cax)
+# fig.savefig('result1.png', format='png', dpi=1000)
+
+# make the full dataFrame which include error_base, error_taste, sim, sim_taste, mean_result ,error_result
 
 
