@@ -8,7 +8,8 @@ python version = 3.7.3
 
 **surprise** from 'https://github.com/NicolasHug/Surprise'
 
-clone this project or just pip it to your conda env
+clone this project or just pip it to your conda env:
+
 ``pip install surprise``
 
 ## run
