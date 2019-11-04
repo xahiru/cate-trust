@@ -44,7 +44,7 @@ def into_rate(cate,rate):
 
 class KNNWithMeans(SymmetricAlgo):
 
-    def __init__(self,list_of_cats,taste_score_data, base_line=False, k=20, min_k=1, sim_options={}, verbose=True, **kwargs):
+    def __init__(self,list_of_cats,taste_score_data, base_line=False, k=40, min_k=1, sim_options={}, verbose=True, **kwargs):
 
         SymmetricAlgo.__init__(self, sim_options=sim_options,
                                verbose=verbose, **kwargs)
@@ -88,6 +88,7 @@ class KNNWithMeans(SymmetricAlgo):
             if sim > 0:
 
                 if self.base_line:
+                    # sim += 0.1005
                     sum_sim += sim
                     sum_ratings += (r - self.means[nb]) * sim
                     actual_k += 1
@@ -97,11 +98,10 @@ class KNNWithMeans(SymmetricAlgo):
                     else:
                         result = np.dot(self.list_of_cats[nb], self.taste_score_data[y]) # y is the user in the item_based
 
+                    # result += 0.3
                     sum_sim += result
                     sum_ratings += (r - self.means[nb]) * result
                     actual_k += 1
-                    side_info['result'] = result
-
 
         if actual_k < self.min_k:
             sum_ratings = 0
@@ -118,7 +118,7 @@ class KNNWithMeans(SymmetricAlgo):
 
 
 
-k = 2
+k = 5
 kf = KFold(n_splits=k, random_state=100)
 t_mae = 0
 t_rmse = 0
