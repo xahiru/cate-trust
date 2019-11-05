@@ -21,7 +21,6 @@ import os
 import matplotlib
 import plotly
 
-file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
 datasetname = 'ml-100k'  # valid datasetnames are 'ml-latest-small', 'ml-20m', and 'jester'
 data1 = Dataset.load_builtin(datasetname)
 
@@ -225,25 +224,25 @@ for trainset, testset in kf.split(data1):
 
 #compute the sim between users
 
-    # for i in range(len(taste_score_data)):
-    #
-    #     sim_taste_x = []
-    #     user_x_taste = taste_score_data[i]
-    #
-    #     for j in range(len(taste_score_data)):
-    #
-    #         user_y_taste = taste_score_data[j]
-    #
-    #         #compute the common taste
-    #         common_taste = common_number(user_x_taste,user_y_taste)
-    #
-    #         #compute the dist between two users
-    #         dist_temp = dist(user_x_taste, user_y_taste,common_taste)
-    #         sim_taste_x.append(dist_temp)
-    #
-    #     sim_taste.append(sim_taste_x)
-    # sim_taste_np = np.array(sim_taste)
-    sim_taste_np = None
+    for i in range(len(taste_score_data)):
+
+        sim_taste_x = []
+        user_x_taste = taste_score_data[i]
+
+        for j in range(len(taste_score_data)):
+
+            user_y_taste = taste_score_data[j]
+
+            #compute the common taste
+            common_taste = common_number(user_x_taste,user_y_taste)
+
+            #compute the dist between two users
+            dist_temp = dist(user_x_taste, user_y_taste,common_taste)
+            sim_taste_x.append(dist_temp)
+
+        sim_taste.append(sim_taste_x)
+    sim_taste_np = np.array(sim_taste)
+    # sim_taste_np = None
 
 
 #---------------------------------main part---------------------------------#
