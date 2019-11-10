@@ -129,7 +129,7 @@ class KNNWithMeans(SymmetricAlgo):
 
 
 
-k = 2
+k = 5
 kf = KFold(n_splits=k, random_state=100)
 t_mae = 0
 t_rmse = 0
@@ -206,7 +206,13 @@ plot = sns.regplot(x=af.mean_result, y=af.error)
 fig = plot.get_figure()
 fig.savefig('result.png', format='png', dpi=1000)
 
-fig.show()
+print('start')
+sns.catplot(x="rating", y="error", data=df)
+print('end')
+
+sns.catplot(x="rating", y="error",kind = "box", data=df)
+sns.catplot(x="rating", y="error",kind = "boxen", data=df)
+sns.catplot(x="rating", y="error",kind = "violin", data=df)
 
 
 # print('start')
