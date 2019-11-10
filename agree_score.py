@@ -66,7 +66,7 @@ def common_number(vec1,vec2):
 class KNNWithMeans(SymmetricAlgo):
 
 
-    def __init__(self,list_of_cats,taste_score_data,option_sim,base_line=False, k=40, min_k=1, sim_options={}, verbose=True, **kwargs):
+    def __init__(self,list_of_cats,taste_score_data,base_line=False, k=40, min_k=1, sim_options={}, verbose=True, **kwargs):
 
 
         SymmetricAlgo.__init__(self, sim_options=sim_options,
@@ -77,7 +77,6 @@ class KNNWithMeans(SymmetricAlgo):
         self.list_of_cats = list_of_cats
         self.taste_score_data = taste_score_data
         self.base_line = base_line
-        self.option_sim = option_sim
 
 
 
@@ -85,47 +84,7 @@ class KNNWithMeans(SymmetricAlgo):
 
         SymmetricAlgo.fit(self, trainset)
 
-        ir_backup = copy.deepcopy(self.trainset.ur)
-        ur_backup = copy.deepcopy(self.trainset.ir)
-
-
-        raw2inner_id_users = {}
-        raw2inner_id_items = {}
-
-        current_u_index = 0
-        current_i_index = 0
-
-        my_ur = defaultdict(list)
-        my_ir = defaultdict(list)
-
-        # user raw id, item raw id, translated rating, time stamp
-        for urid, irid, r in self.trainset.all_ratings():
-            try:
-                uid = raw2inner_id_users[urid]
-            except KeyError:
-                uid = current_u_index
-                raw2inner_id_users[urid] = current_u_index
-                current_u_index += 1
-            try:
-                iid = raw2inner_id_items[irid]
-            except KeyError:
-                iid = current_i_index
-                raw2inner_id_items[irid] = current_i_index
-                current_i_index += 1
-
-            result = np.dot(self.list_of_cats[iid], self.taste_score_data[uid])
-            my_ur[uid].append((iid, result))
-            my_ir[iid].append((uid, result))
-
-
-
-
         self.sim = self.compute_similarities(verbose=self.verbose)
-
-        # self.sim = self.
-        self.trainset.ur = ur_backup
-        self.trainset.ir = ir_backup
-
 
         self.means = np.zeros(self.n_x)
         for x, ratings in iteritems(self.xr):
@@ -223,35 +182,13 @@ for trainset, testset in kf.split(data1):
         itemx_rating = (user_ratings/np.sum(user_ratings)).tolist()
         items_taste_score_data[item] = itemx_rating
 
-#compute the sim between users
-
-    # for i in range(len(taste_score_data)):
-    #
-    #     sim_taste_x = []
-    #     user_x_taste = taste_score_data[i]
-    #
-    #     for j in range(len(taste_score_data)):
-    #
-    #         user_y_taste = taste_score_data[j]
-    #
-    #         #compute the common taste
-    #         common_taste = common_number(user_x_taste,user_y_taste)
-    #
-    #         #compute the dist between two users
-    #         dist_temp = dist(user_x_taste, user_y_taste,common_taste)
-    #         sim_taste_x.append(dist_temp)
-    #
-    #     sim_taste.append(sim_taste_x)
-    # sim_taste_np = np.array(sim_taste)
-    sim_taste_np = None
-
 
 #---------------------------------main part---------------------------------#
 
     user_based = True  # changed to False to do item-absed CF
     sim_options = {'name': 'pearson', 'user_based': user_based}
 
-    algo = KNNWithMeans(items_taste_score_data,taste_score_data,sim_taste_np,base_line=False, sim_options=sim_options)
+    algo = KNNWithMeans(items_taste_score_data,taste_score_data,base_line=True, sim_options=sim_options)
 
     algo.fit(trainset)
     predictions = algo.test(testset)
@@ -265,8 +202,4 @@ for trainset, testset in kf.split(data1):
 print("\nMEAN_RMSE:" + str(t_rmse/k))
 print("MEAN_MAE:" + str(t_mae/k))
 
-# print(predictions)
 
-# df = pd.DataFrame(predictions, columns=['u_id', 'i_id', 'rating', 'estimate','detail'])
-
-# print(df)
