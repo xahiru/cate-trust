@@ -1,11 +1,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 from surprise import Dataset
 import pandas as pd
 import numpy as np
 from surprise.model_selection import KFold
-import numpy as np
+from surprise import Dataset
+from surprise.model_selection import KFold
 from six import iteritems
 import heapq
 from surprise import Dataset
@@ -21,32 +21,65 @@ import os
 import matplotlib
 import plotly
 
-file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
-datasetname = 'ml-100k'  # valid datasetnames are 'ml-latest-small', 'ml-20m', and 'jester'
-data1 = Dataset.load_builtin(datasetname)
-       
-path = '../ml-100k/u.item'
-df = pd.read_csv(path, sep="|", encoding="iso-8859-1", names=['id','name','date','space','url','cat1','cat2','cat3','cat4','cat5','cat6','cat7','cat8','cat9','cat10','cat11','cat12','cat13','cat14','cat15','cat16','cat17','cat18','cat19'])
-list_of_cats = {}
-
-df1 = df[['id','cat1','cat2','cat3','cat4','cat5','cat6','cat7','cat8','cat9','cat10','cat11','cat12','cat13','cat14','cat15','cat16','cat17','cat18','cat19']]
-for row in df.itertuples(index=True, name='Pandas'):
-    id = str(getattr(row, "id"))
-    cate_x = [getattr(row, "cat1"),getattr(row, "cat2"),getattr(row, "cat3"),getattr(row, "cat4"),getattr(row, "cat5"),getattr(row, "cat6"),getattr(row, "cat7"),getattr(row, "cat8"),getattr(row, "cat9"),getattr(row, "cat10"),getattr(row, "cat11"),getattr(row, "cat12"),getattr(row, "cat13"),getattr(row, "cat14"),getattr(row, "cat15"),getattr(row, "cat16"),getattr(row, "cat17"),getattr(row, "cat18"),getattr(row, "cat19"),]
-    list_of_cats[id] = cate_x
-
+# util part
+def flat(listx):
+    for item in listx:
+        if not isinstance(item, (list, tuple)):
+            yield item
+        else:
+            yield from flat(item)
+def convert(listx):
+    #listx : ['Adventure', 'Animation', 'Children', 'Comedy', 'Fantasy']
+    list = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    if '(no genres listed)' in listx:
+        list[0] = 1
+    if 'Action' in listx:
+        list[1] = 1
+    if 'Adventure' in listx:
+        list[2] = 1
+    if 'Animation' in listx:
+        list[3] = 1
+    if 'Children' in listx:
+        list[4] = 1
+    if 'Comedy' in listx:
+        list[5] = 1
+    if 'Crime' in listx:
+        list[6] = 1
+    if 'Documentary' in listx:
+        list[7] = 1
+    if 'Drama' in listx:
+        list[8] = 1
+    if 'Fantasy' in listx:
+        list[9] = 1
+    if 'Film-Noir' in listx:
+        list[10] = 1
+    if 'Horror' in listx:
+        list[11] = 1
+    if 'Musical' in listx:
+        list[12] = 1
+    if 'Mystery' in listx:
+        list[13] = 1
+    if 'Romance' in listx:
+        list[14] = 1
+    if 'Sci-Fi' in listx:
+        list[15] = 1
+    if 'Thriller' in listx:
+        list[16] = 1
+    if 'War' in listx:
+        list[17] = 1
+    if 'Western' in listx:
+        list[18] = 1
+    return list
 def into_rate(cate,rate):
     for index in range(len(cate)):
         if cate[index] == 1:
             cate[index] = rate
     return cate
-
 def dist(vec1,vec2,common_number):
     vec1 = np.array(vec1)
     vec2 = np.array(vec2)
     dist = np.sqrt(np.sum(np.square(vec1 - vec2))/common_number)
     return dist
-
 def common_number(vec1,vec2):
     vec1 = np.array(vec1)
     vec2 = np.array(vec2)
@@ -61,6 +94,37 @@ def common_number(vec1,vec2):
         i += 1
 
     return common_set_length
+
+#------------------------------------------------------------------------
+# TODO list:
+# get the 'list_of_cats' in the ml-latest-small dataset as option_dataset_1
+# get the 'list_of_cats' in the ml-1M dataset as option_dataset_2
+    # first need to add 1M to surprise framework
+#------------------------------------------------------------------------
+
+file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
+datasetname = 'ml-1m'  # valid datasetnames are 'ml-latest-small', 'ml-20m', and 'jester'
+data1 = Dataset.load_builtin(datasetname)
+
+path = '../ml-1m/movies.dat'
+df = pd.read_csv(path, sep="::", engine='python',encoding="iso-8859-1", names=['id','name','CATE'])
+df = df[['id','CATE']]
+list_of_cats = {}
+
+for row in df.itertuples(index=True, name='Pandas'):
+
+    id = str(getattr(row, "id"))
+
+    cate = getattr(row, "CATE")
+
+    # change cate(str) into the list of cate(list)
+    cate = cate.split('|')
+
+    # set a map function from cate(word) to cate(0or1)
+    cate = convert(cate)
+
+    list_of_cats[id] = cate
+
 
 
 class KNNWithMeans(SymmetricAlgo):
@@ -143,11 +207,12 @@ class KNNWithMeans(SymmetricAlgo):
         return est, details
 
 
+
+
 t_mae = 0
 t_rmse = 0
 k = 5
 kf = KFold(n_splits=k, random_state=100)
-
 
 for trainset, testset in kf.split(data1):
     taste_score_data = {}
@@ -221,5 +286,15 @@ for trainset, testset in kf.split(data1):
 
 print("\nMEAN_RMSE:" + str(t_rmse/k))
 print("MEAN_MAE:" + str(t_mae/k))
+
+# print(list_of_cats['193565'])
+# print(len(list_of_cats))
+# exit()
+
+
+
+
+
+
 
 
