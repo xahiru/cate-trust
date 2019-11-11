@@ -24,10 +24,6 @@ import plotly
 file_path_save_data = 'data/processed/'  # don't forget to create this folder before running the scrypt
 datasetname = 'ml-100k'  # valid datasetnames are 'ml-latest-small', 'ml-20m', and 'jester'
 data1 = Dataset.load_builtin(datasetname)
-
-# file_path = os.path.expanduser('../ml-100k/smalltest.csv')
-# reader = Reader(line_format='user item rating timestamp', sep=',')
-# data1 = Dataset.load_from_file(file_path, reader=reader, rating_scale=(0, 5.0))
        
 path = '../ml-100k/u.item'
 df = pd.read_csv(path, sep="|", encoding="iso-8859-1", names=['id','name','date','space','url','cat1','cat2','cat3','cat4','cat5','cat6','cat7','cat8','cat9','cat10','cat11','cat12','cat13','cat14','cat15','cat16','cat17','cat18','cat19'])
@@ -143,11 +139,11 @@ class KNNWithMeans(SymmetricAlgo):
         return est, details
 
 
-
-k = 5
-kf = KFold(n_splits=k, random_state=100)
 t_mae = 0
 t_rmse = 0
+k = 5
+kf = KFold(n_splits=k, random_state=100)
+
 
 for trainset, testset in kf.split(data1):
     taste_score_data = {}
