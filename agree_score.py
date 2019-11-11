@@ -186,9 +186,29 @@ for trainset, testset in kf.split(data1):
 #---------------------------------main part---------------------------------#
 
     user_based = True  # changed to False to do item-absed CF
-    sim_options = {'name': 'pearson', 'user_based': user_based}
 
-    algo = KNNWithMeans(items_taste_score_data,taste_score_data,base_line=True, sim_options=sim_options)
+    #for normal case-------------------------------------------------------#
+    # sim_options = {'name': 'pearson', 'user_based': user_based}
+    # algo = KNNWithMeans(items_taste_score_data,
+    #                     taste_score_data,
+    #                     base_line=True,
+    #                     sim_options=sim_options)
+
+    #for agreement case
+    epsilon = 1
+    lambdak = 0.5
+    beta = 2.5
+    sim_options = {'name': 'agreement',
+                   'user_based': user_based,
+                   'trainset':trainset,
+                   'beta':beta,
+                   'epsilon':epsilon,
+                   'lambdak':lambdak}
+
+    algo = KNNWithMeans(items_taste_score_data,
+                        taste_score_data,
+                        base_line=False,
+                        sim_options=sim_options)
 
     algo.fit(trainset)
     predictions = algo.test(testset)
